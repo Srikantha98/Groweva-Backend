@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Evabirds Backend API Documentation
 
 Welcome to the **Evabirds** backend service. This project is a production-grade, secure RESTful API built with **Spring Boot** and **PostgreSQL**, designed to support web (React.js) and mobile (Flutter) applications.
@@ -440,3 +441,7 @@ Common HTTP status codes returned:
 - `401 Unauthorized`: Bad credentials or invalid/expired token
 - `403 Forbidden`: Action not permitted or missing authorization
 - `404 Not Found`: Resource (User, Farm, Message) not found
+=======
+# Groweva-Backend
+Evabirds backend
+>>>>>>> origin/main

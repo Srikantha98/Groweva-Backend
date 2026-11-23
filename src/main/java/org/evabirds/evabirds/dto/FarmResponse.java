@@ -97,6 +97,7 @@ public class FarmResponse {
     private String verifiedBy;
     private Integer viewsCount;
     private String primaryImageUrl;
+    private String thumbnailUrl;
     private List<FarmImageResponse> images = new ArrayList<>();
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -206,16 +207,20 @@ public class FarmResponse {
         if (farm.getImages() != null && !farm.getImages().isEmpty()) {
             List<FarmImageResponse> imageResponses = new ArrayList<>();
             String primaryUrl = null;
+            String primaryThumb = null;
             for (FarmImage img : farm.getImages()) {
                 imageResponses.add(FarmImageResponse.fromEntity(img));
                 if (img.isPrimary() && primaryUrl == null) {
                     primaryUrl = img.getImageUrl();
+                    primaryThumb = img.getThumbnailUrl();
                 }
             }
             if (primaryUrl == null && !imageResponses.isEmpty()) {
                 primaryUrl = imageResponses.get(0).getImageUrl();
+                primaryThumb = imageResponses.get(0).getThumbnailUrl();
             }
             response.setPrimaryImageUrl(primaryUrl);
+            response.setThumbnailUrl(primaryThumb != null ? primaryThumb : primaryUrl);
             response.setImages(imageResponses);
         }
 
@@ -772,6 +777,14 @@ public class FarmResponse {
 
     public void setPrimaryImageUrl(String primaryImageUrl) {
         this.primaryImageUrl = primaryImageUrl;
+    }
+
+    public String getThumbnailUrl() {
+        return thumbnailUrl;
+    }
+
+    public void setThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
     }
 
     public List<FarmImageResponse> getImages() {

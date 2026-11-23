@@ -23,6 +23,7 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
+    @org.springframework.scheduling.annotation.Async("taskExecutor")
     public void sendOtpEmail(String toEmail, String otpCode) {
         if (toEmail == null || toEmail.trim().isEmpty()) {
             throw new BadRequestException("Recipient email address cannot be empty.");

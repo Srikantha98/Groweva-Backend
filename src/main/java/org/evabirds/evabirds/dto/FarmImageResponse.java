@@ -9,6 +9,9 @@ public class FarmImageResponse {
     private Long id;
     private Long farmId;
     private String imageUrl;
+    private String thumbnailUrl;
+    private String originalUrl;
+    private String publicId;
     private String category;
     private String caption;
     private boolean isPrimary;
@@ -29,6 +32,9 @@ public class FarmImageResponse {
             response.setFarmId(image.getFarm().getId());
         }
         response.setImageUrl(image.getImageUrl());
+        response.setThumbnailUrl(image.getThumbnailUrl());
+        response.setOriginalUrl(image.getOriginalUrl());
+        response.setPublicId(image.getPublicId());
         response.setCategory(image.getCategory());
         response.setCaption(image.getCaption());
         response.setPrimary(image.isPrimary());
@@ -60,6 +66,30 @@ public class FarmImageResponse {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public String getThumbnailUrl() {
+        return thumbnailUrl;
+    }
+
+    public void setThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
+    }
+
+    public String getOriginalUrl() {
+        return originalUrl;
+    }
+
+    public void setOriginalUrl(String originalUrl) {
+        this.originalUrl = originalUrl;
+    }
+
+    public String getPublicId() {
+        return publicId;
+    }
+
+    public void setPublicId(String publicId) {
+        this.publicId = publicId;
     }
 
     public String getCategory() {

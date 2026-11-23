@@ -6,6 +6,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
@@ -14,7 +15,10 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "farm_images")
+@Table(name = "farm_images", indexes = {
+        @Index(name = "idx_farm_image_farm", columnList = "farm_id"),
+        @Index(name = "idx_farm_image_primary", columnList = "farm_id, is_primary")
+})
 public class FarmImage {
 
     @Id
@@ -27,6 +31,15 @@ public class FarmImage {
 
     @Column(name = "image_url", columnDefinition = "TEXT", nullable = false)
     private String imageUrl;
+
+    @Column(name = "thumbnail_url", columnDefinition = "TEXT")
+    private String thumbnailUrl;
+
+    @Column(name = "original_url", columnDefinition = "TEXT")
+    private String originalUrl;
+
+    @Column(name = "public_id", length = 255)
+    private String publicId;
 
     @Column(length = 100)
     private String category;
@@ -63,6 +76,18 @@ public class FarmImage {
         this.displayOrder = displayOrder;
     }
 
+    public FarmImage(Farm farm, String imageUrl, String thumbnailUrl, String originalUrl, String publicId, String category, String caption, boolean isPrimary, int displayOrder) {
+        this.farm = farm;
+        this.imageUrl = imageUrl;
+        this.thumbnailUrl = thumbnailUrl;
+        this.originalUrl = originalUrl;
+        this.publicId = publicId;
+        this.category = category;
+        this.caption = caption;
+        this.isPrimary = isPrimary;
+        this.displayOrder = displayOrder;
+    }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -90,6 +115,30 @@ public class FarmImage {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public String getThumbnailUrl() {
+        return thumbnailUrl;
+    }
+
+    public void setThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
+    }
+
+    public String getOriginalUrl() {
+        return originalUrl;
+    }
+
+    public void setOriginalUrl(String originalUrl) {
+        this.originalUrl = originalUrl;
+    }
+
+    public String getPublicId() {
+        return publicId;
+    }
+
+    public void setPublicId(String publicId) {
+        this.publicId = publicId;
     }
 
     public String getCategory() {

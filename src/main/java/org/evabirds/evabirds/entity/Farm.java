@@ -9,6 +9,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -23,7 +24,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "farms")
+@Table(name = "farms", indexes = {
+        @Index(name = "idx_farm_status", columnList = "status"),
+        @Index(name = "idx_farm_owner", columnList = "owner_id"),
+        @Index(name = "idx_farm_listing_type", columnList = "listing_type"),
+        @Index(name = "idx_farm_type", columnList = "farm_type"),
+        @Index(name = "idx_farm_state_district", columnList = "state, district"),
+        @Index(name = "idx_farm_created_at", columnList = "created_at")
+})
 public class Farm {
 
     @Id

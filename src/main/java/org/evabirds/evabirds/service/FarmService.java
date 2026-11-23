@@ -29,6 +29,7 @@ public class FarmService {
     private final org.evabirds.evabirds.repository.FavoriteRepository favoriteRepository;
     private final org.evabirds.evabirds.repository.MessageRepository messageRepository;
     private final NotificationService notificationService;
+    private final CloudinaryService cloudinaryService;
 
     public FarmService(
             FarmRepository farmRepository,
@@ -36,7 +37,8 @@ public class FarmService {
             org.evabirds.evabirds.repository.EmployeeRepository employeeRepository,
             org.evabirds.evabirds.repository.FavoriteRepository favoriteRepository,
             org.evabirds.evabirds.repository.MessageRepository messageRepository,
-            NotificationService notificationService
+            NotificationService notificationService,
+            CloudinaryService cloudinaryService
     ) {
         this.farmRepository = farmRepository;
         this.userRepository = userRepository;
@@ -44,6 +46,7 @@ public class FarmService {
         this.favoriteRepository = favoriteRepository;
         this.messageRepository = messageRepository;
         this.notificationService = notificationService;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @Transactional
@@ -150,7 +153,7 @@ public class FarmService {
         farm.setShedDistancesJson(request.getShedDistancesJson());
         farm.setStatus(targetStatus);
 
-        // Process Farm Images
+        // Process Farm Images (Automatic Optimization & GrowEva Watermark)
         if (request.getImages() != null && !request.getImages().isEmpty()) {
             int order = 0;
             boolean hasPrimary = false;
@@ -158,14 +161,7 @@ public class FarmService {
                 if (imgReq.getImageUrl() != null && !imgReq.getImageUrl().isBlank()) {
                     boolean isPrim = Boolean.TRUE.equals(imgReq.getIsPrimary()) && !hasPrimary;
                     if (isPrim) hasPrimary = true;
-                    FarmImage img = new FarmImage(
-                            farm,
-                            imgReq.getImageUrl(),
-                            imgReq.getCategory(),
-                            imgReq.getCaption() != null ? imgReq.getCaption() : imgReq.getCategory(),
-                            isPrim,
-                            imgReq.getDisplayOrder() != null ? imgReq.getDisplayOrder() : order++
-                    );
+                    FarmImage img = createProcessedFarmImage(farm, imgReq, isPrim, imgReq.getDisplayOrder() != null ? imgReq.getDisplayOrder() : order++);
                     farm.addImage(img);
                 }
             }
@@ -173,14 +169,8 @@ public class FarmService {
                 farm.getImages().get(0).setPrimary(true);
             }
         } else if (request.getPrimaryImageUrl() != null && !request.getPrimaryImageUrl().isBlank()) {
-            FarmImage img = new FarmImage(
-                    farm,
-                    request.getPrimaryImageUrl(),
-                    "Hero",
-                    "Primary Farm Image",
-                    true,
-                    0
-            );
+            AddFarmImageRequest primaryReq = new AddFarmImageRequest(request.getPrimaryImageUrl(), "Hero", "Primary Farm Image", true, 0);
+            FarmImage img = createProcessedFarmImage(farm, primaryReq, true, 0);
             farm.addImage(img);
         }
 
@@ -556,5 +546,42 @@ public class FarmService {
                 throw new IllegalArgumentException("Lease duration in months must be provided and greater than 0 for LEASE listings");
             }
         }
+    }
+
+    private FarmImage createProcessedFarmImage(Farm farm, AddFarmImageRequest imgReq, boolean isPrimary, int order) {
+        String rawUrl = imgReq.getImageUrl();
+        String finalUrl = rawUrl;
+        String thumbUrl = imgReq.getThumbnailUrl();
+        String origUrl = imgReq.getOriginalUrl();
+        String pubId = imgReq.getPublicId();
+
+        if (rawUrl != null && rawUrl.startsWith("data:image/")) {
+            try {
+                var res = cloudinaryService.processBase64Upload(rawUrl, "evabirds/farms", true);
+                finalUrl = (String) res.get("url");
+                thumbUrl = (String) res.get("thumbnailUrl");
+                origUrl = (String) res.get("originalUrl");
+                pubId = (String) res.get("publicId");
+            } catch (Exception e) {
+                // Keep rawUrl as fallback if offline
+            }
+        } else if (rawUrl != null) {
+            finalUrl = cloudinaryService.ensureOptimizedAndWatermarked(rawUrl, true);
+            if (thumbUrl == null || thumbUrl.isBlank()) {
+                thumbUrl = finalUrl;
+            }
+        }
+
+        return new FarmImage(
+                farm,
+                finalUrl,
+                thumbUrl,
+                origUrl != null ? origUrl : finalUrl,
+                pubId,
+                imgReq.getCategory(),
+                imgReq.getCaption() != null ? imgReq.getCaption() : imgReq.getCategory(),
+                isPrimary,
+                order
+        );
     }
 }

@@ -1,10 +1,13 @@
 package org.evabirds.evabirds.service;
 
 import jakarta.annotation.PostConstruct;
+import org.evabirds.evabirds.constant.CacheNames;
 import org.evabirds.evabirds.entity.Banner;
 import org.evabirds.evabirds.entity.GoogleAdsConfig;
 import org.evabirds.evabirds.repository.BannerRepository;
 import org.evabirds.evabirds.repository.GoogleAdsConfigRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +50,7 @@ public class BannerService {
         }
     }
 
+    @Cacheable(value = CacheNames.BANNERS, key = "#activeOnly != null ? #activeOnly : false")
     public List<Banner> getAllBanners(Boolean activeOnly) {
         if (Boolean.TRUE.equals(activeOnly)) {
             return bannerRepository.findByIsActiveTrue();
@@ -69,6 +73,7 @@ public class BannerService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheNames.BANNERS, allEntries = true)
     public Banner saveBanner(Banner banner) {
         boolean isSponsorship = banner.getAdType() == null || !"GOOGLE_ADS".equalsIgnoreCase(banner.getAdType());
 
@@ -108,6 +113,7 @@ public class BannerService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheNames.BANNERS, allEntries = true)
     public void deleteBanner(String id) {
         bannerRepository.deleteById(id);
     }
@@ -132,6 +138,7 @@ public class BannerService {
         return null;
     }
 
+    @Cacheable(value = CacheNames.GOOGLE_ADS, key = "'default'")
     public GoogleAdsConfig getGoogleAdsConfig() {
         return googleAdsConfigRepository.findById(1L).orElseGet(() -> {
             GoogleAdsConfig c = new GoogleAdsConfig();
@@ -141,6 +148,7 @@ public class BannerService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheNames.GOOGLE_ADS, allEntries = true)
     public GoogleAdsConfig updateGoogleAdsConfig(GoogleAdsConfig incoming) {
         GoogleAdsConfig config = getGoogleAdsConfig();
         if (incoming.getEnabled() != null) config.setEnabled(incoming.getEnabled());

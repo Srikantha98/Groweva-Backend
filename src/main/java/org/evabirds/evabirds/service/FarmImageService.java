@@ -18,10 +18,12 @@ public class FarmImageService {
 
     private final FarmImageRepository farmImageRepository;
     private final FarmRepository farmRepository;
+    private final CloudinaryService cloudinaryService;
 
-    public FarmImageService(FarmImageRepository farmImageRepository, FarmRepository farmRepository) {
+    public FarmImageService(FarmImageRepository farmImageRepository, FarmRepository farmRepository, CloudinaryService cloudinaryService) {
         this.farmImageRepository = farmImageRepository;
         this.farmRepository = farmRepository;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @Transactional
@@ -48,9 +50,35 @@ public class FarmImageService {
 
         int order = request.getDisplayOrder() != null ? request.getDisplayOrder() : (int) existingCount;
 
+        String rawUrl = request.getImageUrl();
+        String finalUrl = rawUrl;
+        String thumbUrl = request.getThumbnailUrl();
+        String origUrl = request.getOriginalUrl();
+        String pubId = request.getPublicId();
+
+        if (rawUrl != null && rawUrl.startsWith("data:image/")) {
+            try {
+                var res = cloudinaryService.processBase64Upload(rawUrl, "evabirds/farms", true);
+                finalUrl = (String) res.get("url");
+                thumbUrl = (String) res.get("thumbnailUrl");
+                origUrl = (String) res.get("originalUrl");
+                pubId = (String) res.get("publicId");
+            } catch (Exception ignored) {
+            }
+        } else if (rawUrl != null) {
+            finalUrl = cloudinaryService.ensureOptimizedAndWatermarked(rawUrl, true);
+            if (thumbUrl == null || thumbUrl.isBlank()) {
+                thumbUrl = finalUrl;
+            }
+        }
+
         FarmImage farmImage = new FarmImage(
                 farm,
-                request.getImageUrl(),
+                finalUrl,
+                thumbUrl,
+                origUrl != null ? origUrl : finalUrl,
+                pubId,
+                request.getCategory(),
                 request.getCaption(),
                 shouldBePrimary,
                 order

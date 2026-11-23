@@ -97,7 +97,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/register", "/api/users/login").permitAll()
                         .requestMatchers("/api/banners", "/api/banners/**").permitAll()
                         .requestMatchers("/api/google-ads", "/api/google-ads/**").permitAll()
-                        .requestMatchers("/api/upload", "/uploads/**").permitAll()
+                        .requestMatchers("/api/upload", "/api/upload/**", "/uploads/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/farms/*/view").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/farms/*/verify", "/api/farms/*/admin-status").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/farms/my-farms").authenticated()
